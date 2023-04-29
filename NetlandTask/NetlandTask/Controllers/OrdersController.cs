@@ -11,12 +11,14 @@ namespace NetlandTask.Controllers
     public class OrdersController : ApiBaseController
     {
         [HttpGet]
-        public async Task<ActionResult> GetOrders(
-            [FromQuery]FilterViewModel filters)
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrders([FromQuery]FilterViewModel filters)
         {
-            Console.ReadLine();
+            var result = await Mediator.Send(new GetOrdersByFiltersQuery()
+            {
+                Filters = filters
+            });
 
-            return Ok();
+            return Ok(result);
         }
     }
 }

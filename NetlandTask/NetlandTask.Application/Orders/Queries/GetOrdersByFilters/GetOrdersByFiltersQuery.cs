@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetlandTask.Application.Orders.Queries.GetOrdersByFilters
 {
-    public class GetOrdersByFiltersQuery : IRequest<Order>
+    public class GetOrdersByFiltersQuery : IRequest<IEnumerable<Order>>
     {
         public FilterViewModel Filters { get; set; }
     }
