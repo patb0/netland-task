@@ -13,8 +13,8 @@ namespace NetlandTask.Domain.Entities
         public string Number { get; set; }
         public string ClientCode { get; set; }
         public string ClientName { get; set; }
-        public string OrderDate { get; set; }
-        public string? ShipmentDate { get; set; }
+        public DateTime OrderDate { get; set; }
+        public DateTime? ShipmentDate { get; set; }
         public int Quantity { get; set; }
         public bool Confirmed { get; set; }
         public float Value { get; set; }
