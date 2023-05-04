@@ -12,14 +12,31 @@ namespace NetlandTask.Application.Mapping
     {
         public OrderClassMap()
         {
-            Map(m => m.Number).Name("Number");
-            Map(m => m.ClientCode).Name("ClientCode");
-            Map(m => m.ClientName).Name("ClientName");
-            Map(m => m.OrderDate).Name("OrderDate");
-            Map(m => m.ShipmentDate).Name("ShipmentDate");
-            Map(m => m.Quantity).Name("Quantity");
-            Map(m => m.Confirmed).Name("Confirmed");
-            Map(m => m.Value).Name("Value");
+            Map(m => m.Number)
+                .Name("Number");
+
+            Map(m => m.ClientCode)
+                .Name("ClientCode");
+
+            Map(m => m.ClientName)
+                .Name("ClientName");
+
+            Map(m => m.OrderDate)
+                .Name("OrderDate")
+                .TypeConverterOption.Format("dd.MM.yyyy");
+
+            Map(m => m.ShipmentDate)
+                .Name("ShipmentDate")
+                .TypeConverterOption.Format("dd.MM.yyyy");
+
+            Map(m => m.Quantity)
+                .Name("Quantity");
+
+            Map(m => m.Confirmed)
+                .Name("Confirmed");
+
+            Map(m => m.Value)
+                .Name("Value");
         }
     }
 }

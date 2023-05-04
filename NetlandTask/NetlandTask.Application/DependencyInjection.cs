@@ -21,9 +21,6 @@ namespace NetlandTask.Application
             //Add mediatr
             services.AddMediatR(Assembly.GetExecutingAssembly());
 
-            //Add automapper
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
             //Add fluent validation
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));

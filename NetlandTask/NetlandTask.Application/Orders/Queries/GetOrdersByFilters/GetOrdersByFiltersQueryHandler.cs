@@ -2,9 +2,12 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
+using CsvHelper.TypeConversion;
 using FluentValidation.Results;
 using MediatR;
+using Microsoft.Extensions.Options;
 using NetlandTask.Application.Common;
+using NetlandTask.Application.Exceptions;
 using NetlandTask.Application.Mapping;
 using NetlandTask.Domain.Entities;
 using System;
@@ -20,11 +23,10 @@ namespace NetlandTask.Application.Orders.Queries.GetOrdersByFilters
     public class GetOrdersByFiltersQueryHandler : IRequestHandler<GetOrdersByFiltersQuery, IEnumerable<Order>>
     {
         private readonly CsvFile _csvFile;
-        private readonly IMapper _mapper;
-        public GetOrdersByFiltersQueryHandler(CsvFile csvFile, IMapper mapper)
+
+        public GetOrdersByFiltersQueryHandler(CsvFile csvFile)
         {
             _csvFile = csvFile;
-            _mapper = mapper;
         }
 
         public async Task<IEnumerable<Order>> Handle(GetOrdersByFiltersQuery request, CancellationToken cancellationToken)
@@ -36,32 +38,52 @@ namespace NetlandTask.Application.Orders.Queries.GetOrdersByFilters
                     Encoding = Encoding.UTF8,
                     Delimiter = ",",
                     Quote = '"',
-                    HasHeaderRecord = true
+                    HasHeaderRecord = true,
                 };
 
                 using (var csvReader = new CsvReader(streamReader, csvConfiguration))
                 {
-                    //to do:
-                    //- map for get records<Order>
-                    //- save date from csv as D-M-Y, not M-D-Y
-                    //- add filters handling
-
                     csvReader.Context.RegisterClassMap<OrderClassMap>();
 
-                    var records = csvReader.GetRecords<Order>()
-                      .Select(x => new Order()
-                      {
-                          Number = x.Number.Replace("\"", "").Replace(",", ""),
-                          ClientCode = x.ClientCode.Replace("\"", ""),
-                          ClientName = x.ClientName.Replace("\"", ""),
-                          OrderDate = x.OrderDate,
-                          ShipmentDate = x.ShipmentDate,
-                          Quantity = x.Quantity,
-                          Confirmed = x.Confirmed,
-                          Value = x.Value
-                      }).ToList();
+                    //check orders based on filters
+                    var filteredOrders = csvReader.GetRecords<Order>()
+                        .Where(i => i.Number.Contains(request.Filters.Number)
+                          && (string.IsNullOrEmpty(request.Filters.StartDate)
+                            || i.OrderDate >= DateTime.ParseExact(
+                                request.Filters.StartDate,
+                                "dd.MM.yyyy",
+                                CultureInfo.InvariantCulture))
+                          && (string.IsNullOrEmpty(request.Filters.EndDate)
+                            || i.OrderDate <= DateTime.ParseExact(
+                                request.Filters.EndDate, 
+                                "dd.MM.yyyy",
+                                CultureInfo.InvariantCulture))
+                          && (request.Filters.ClientsCode == null
+                            || request.Filters.ClientsCode.Any(
+                                y => i.ClientCode.Contains(y))))
+                        .ToList();
 
-                    return await Task.FromResult(records);
+                    if(filteredOrders.Count == 0)
+                    {
+                        throw new OrderNotFoundException();
+                    }
+
+                    //create clean output
+                    var orders = filteredOrders.Select(x => 
+                        new Order()
+                          {
+                              Number = x.Number.Replace("\"", ""),
+                              ClientCode = x.ClientCode.Replace("\"", ""),
+                              ClientName = x.ClientName.Replace("\"", ""),
+                              OrderDate = x.OrderDate,
+                              ShipmentDate = x.ShipmentDate,
+                              Quantity = x.Quantity,
+                              Confirmed = x.Confirmed,
+                              Value = x.Value
+                          })
+                        .ToList();
+
+                    return await Task.FromResult(orders);
                 }
             }
         }
